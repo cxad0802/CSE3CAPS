@@ -26,4 +26,5 @@
 - [ ] The application runs locally without errors
 - [ ] No secrets, API keys or service account files are committed
 - [ ] No leftover debug code (`dd()`, `var_dump()`, `console.log`)
+- [ ] This is my only open feature branch (no parallel work in progress)
 - [ ] A reviewer has been requested

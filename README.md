@@ -75,10 +75,13 @@ Rules:
 1. **Never commit directly to `main` or `develop`.** Always work on a `feature/*` branch.
 2. Always create your branch from an up-to-date `develop`.
 3. One task equals one branch. Do not mix unrelated changes in a single branch.
-4. Keep your branch up to date with `develop` while you work, so that merge conflicts stay small.
-5. `main` is only updated at the end of the project (or at a tagged milestone), after the full
+4. **One feature at a time.** Finish the feature you are on, commit, push and open its pull
+   request before you create the next branch. Do not keep several of your own feature branches
+   open in parallel - long-lived parallel branches are the main cause of merge clashes.
+5. Keep your branch up to date with `develop` while you work, so that merge conflicts stay small.
+6. `main` is only updated at the end of the project (or at a tagged milestone), after the full
    application has been tested and confirmed working.
-6. Delete your feature branch after it has been merged.
+7. Delete your feature branch after it has been merged.
 
 ### Branch naming
 
@@ -148,6 +151,9 @@ Keep commits small and focused; a reviewer should be able to understand each com
 
 ## Daily workflow (step by step)
 
+Work on **one** feature branch at a time. The cycle below must be completed - including the
+merged pull request - before you start the next task.
+
 ```bash
 # 1. Start from an up-to-date develop
 git checkout develop
@@ -170,6 +176,8 @@ git push -u origin feature/equipment-catalog
 git checkout develop
 git pull origin develop
 git branch -d feature/equipment-catalog
+
+# 7. Only now create the branch for your next task
 ```
 
 To bring the latest `develop` into a branch you are still working on:
