@@ -12,3 +12,9 @@ Route::get('/', function () {
 if (app()->environment('local')) {
     Route::get('/_health/firebase', FirebaseHealthController::class)->name('health.firebase');
 }
+Route::get('/login', function () {
+    return view('auth.login');
+});
+Route::get('/catalog', function () {
+    return view('customer.catalog');
+});
