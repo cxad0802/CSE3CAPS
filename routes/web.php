@@ -18,3 +18,7 @@ Route::get('/login', function () {
 Route::get('/catalog', function () {
     return view('customer.catalog');
 });
+// Admin Dashboard Route
+Route::get('/admin/dashboard', function () {
+    return view('admin.dashboard');
+});
