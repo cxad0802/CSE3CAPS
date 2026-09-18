@@ -222,11 +222,15 @@ php artisan key:generate
    JSON key.
 2. Save it as `storage/app/firebase/service-account.json` (this path is git-ignored).
 3. Fill in the `FIREBASE_*` variables in `.env`.
-4. Verify the connection:
+4. Create the collections and verify the connection:
 
 ```bash
-php artisan firestore:init
+php artisan firestore:init           # create users, equipments, borrowRequests
+php artisan firestore:init --demo    # also add sample equipment for the catalog
 ```
+
+The command is safe to run more than once. While `php artisan serve` is running you can also
+open <http://127.0.0.1:8000/_health/firebase> to see the status of each part of the integration.
 
 ### Running the application
 
