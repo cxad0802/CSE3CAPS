@@ -1,81 +1,117 @@
-# Installing the PHP gRPC extension on Windows (XAMPP)
+# Running PHP with gRPC on Windows
 
-The Firestore client (`google/cloud-firestore`) communicates with Google Cloud over gRPC, so
-PHP needs the `grpc` extension. It is not bundled with XAMPP and it cannot be installed with
-Composer - it is a compiled C extension.
+The Firestore client (`google/cloud-firestore`) talks to Google Cloud over gRPC, so PHP needs the
+`grpc` extension. It is a compiled C extension: Composer cannot install it.
 
-## 1. Identify your PHP build
+## The XAMPP problem: PHP must be non-thread-safe
 
-```powershell
-php -i | Select-String "Thread Safety", "Architecture", "Compiler"
-php -v
+XAMPP ships a **thread-safe (ZTS)** build of PHP, because Apache's `mod_php` requires one. The
+gRPC extension does not support ZTS. It loads and connects, but the moment it calls back into PHP
+to attach the authentication metadata to a request, the process dies:
+
+```
+php artisan firestore:init
+INFO  Connecting to Firestore project [cse3cap-equipment-borrowing].
+Segmentation fault      (exit code 139)
 ```
 
-You need three facts:
+There is no configuration that fixes this - not the credentials, not the service account, not
+`php.ini`. The crash happens inside the extension.
 
-| Fact | Example value | Meaning for the download |
-| --- | --- | --- |
-| PHP version | 8.2.12 | pick the `8.2` DLL |
-| Thread Safety | enabled | pick **ts** (if disabled, pick **nts**) |
-| Architecture | x64 | pick **x64** |
+This affects Apache too, not only the command line, so **the application cannot be served through
+XAMPP's Apache**. Use a separate **non-thread-safe (NTS)** PHP build for both `php artisan` and
+`php artisan serve`. XAMPP stays installed and untouched; only MySQL/phpMyAdmin would still use
+it, and this project needs neither.
 
-The reference machine for this project is PHP **8.2.12 ZTS x64** (compiler VS16), so the correct
-file is `php_grpc-1.83.0-8.2-ts-vs16-x64.zip`.
+## 1. Install a standalone NTS PHP
 
-## 2. Download the DLL
-
-Browse <https://windows.php.net/downloads/pecl/releases/grpc/> and open the latest version
-folder (1.83.0 at the time of writing), or download directly:
+Reference layout used by the team: `D:\php-nts`. Download the **nts**, **vs16**, **x64** build of
+PHP 8.2 and the matching gRPC DLL - all three properties must match or the DLL will not load.
 
 ```powershell
-$url = "https://windows.php.net/downloads/pecl/releases/grpc/1.83.0/php_grpc-1.83.0-8.2-ts-vs16-x64.zip"
-Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\grpc.zip" -UseBasicParsing
-Expand-Archive "$env:TEMP\grpc.zip" -DestinationPath "$env:TEMP\grpc" -Force
+$php  = "https://downloads.php.net/~windows/releases/php-8.2.33-nts-Win32-vs16-x64.zip"
+$grpc = "https://downloads.php.net/~windows/pecl/releases/grpc/1.83.0/php_grpc-1.83.0-8.2-nts-vs16-x64.zip"
+
+Invoke-WebRequest $php  -OutFile "$env:TEMP\php-nts.zip"  -UseBasicParsing
+Invoke-WebRequest $grpc -OutFile "$env:TEMP\grpc-nts.zip" -UseBasicParsing
+
+Expand-Archive "$env:TEMP\php-nts.zip"  -DestinationPath "D:\php-nts" -Force
+Expand-Archive "$env:TEMP\grpc-nts.zip" -DestinationPath "$env:TEMP\grpc" -Force
+Copy-Item "$env:TEMP\grpc\php_grpc.dll" "D:\php-nts\ext\php_grpc.dll" -Force
 ```
 
-The archive is around 40 MB; only `php_grpc.dll` (about 10 MB) is needed.
-
-## 3. Copy the DLL into the PHP extension directory
-
-Find the directory with `php --ini` and the `extension_dir` setting. On the reference machine it
-is `D:\TDT\XAMPP\php\ext`.
+## 2. Configure php.ini
 
 ```powershell
-Copy-Item "$env:TEMP\grpc\php_grpc.dll" "D:\TDT\XAMPP\php\ext\php_grpc.dll" -Force
+Copy-Item "D:\php-nts\php.ini-development" "D:\php-nts\php.ini"
 ```
 
-## 4. Enable the extensions in php.ini
-
-Locate `php.ini` with `php --ini`, make a backup, then in the *Dynamic Extensions* section make
-sure these three lines are present and not commented out:
+Edit `D:\php-nts\php.ini` and make sure these lines are active (remove the leading `;`):
 
 ```ini
-extension=sodium
+extension_dir = "D:\php-nts\ext"
+
+extension=openssl
+extension=curl
+extension=mbstring
+extension=fileinfo
 extension=zip
+extension=pdo_sqlite
+extension=sqlite3
+extension=sodium
+extension=intl
 extension=grpc
 ```
 
-- `grpc` is required by the Firestore client.
-- `zip` is required by Composer to extract packages.
-- `sodium` is used by Laravel's encryption helpers.
+## 3. Give it a CA bundle
 
-## 5. Verify
+A fresh PHP build has no root certificates, so every HTTPS call fails with
+`cURL error 60: unable to get local issuer certificate`. gRPC ships its own roots, which is why
+Firestore reads can work while token requests fail.
 
 ```powershell
-php -m | Select-String "grpc|zip|sodium"
-php -r "echo phpversion('grpc'), PHP_EOL;"
+New-Item -ItemType Directory -Force -Path "D:\php-nts\extras\ssl"
+Invoke-WebRequest "https://curl.se/ca/cacert.pem" -OutFile "D:\php-nts\extras\ssl\cacert.pem" -UseBasicParsing
 ```
 
-Expected output: the three extension names, then the gRPC version (for example `1.83.0`).
+Then in `php.ini`:
 
-If you run the application through Apache instead of `php artisan serve`, restart Apache from
-the XAMPP control panel and confirm `grpc` appears in `phpinfo()`.
+```ini
+curl.cainfo="D:\php-nts\extras\ssl\cacert.pem"
+openssl.cafile="D:\php-nts\extras\ssl\cacert.pem"
+```
+
+## 4. Verify
+
+```powershell
+D:\php-nts\php.exe -v          # must print NTS, not ZTS
+D:\php-nts\php.exe -m | Select-String "grpc|curl|openssl"
+D:\php-nts\php.exe artisan firestore:init
+```
+
+## 5. Use it for everything in this project
+
+```powershell
+D:\php-nts\php.exe artisan serve
+D:\php-nts\php.exe artisan firebase:make-admin admin@example.com
+```
+
+To avoid typing the full path, put `D:\php-nts` **before** the XAMPP entry in the `Path`
+environment variable, then open a new terminal and confirm with:
+
+```powershell
+php -v
+```
+
+Composer keeps working with either build; only the runtime matters.
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `Unable to load dynamic library 'grpc'` | Wrong DLL variant (nts vs. ts, or x86 vs. x64) | Re-check step 1 and download the matching build |
-| `php -m` does not list `grpc` and no warning is shown | Edited the wrong `php.ini` | Use the path printed by `php --ini` |
-| `Class "Google\Cloud\Firestore\FirestoreClient" not found` | Composer dependencies missing | Run `composer install` |
-| Extremely slow Firestore calls | The pure-PHP protobuf fallback is in use | Optional: also install the `protobuf` PECL extension |
+| `Segmentation fault`, exit code 139 | Thread-safe (ZTS) PHP, usually XAMPP's | Use the NTS build, as above |
+| `Unable to load dynamic library 'grpc'` | DLL variant does not match the PHP build (ts/nts, x86/x64, version) | Re-download the matching file |
+| `cURL error 60 ... local issuer certificate` | No CA bundle configured | Step 3 |
+| `php -m` does not list `grpc`, no warning | The wrong `php.ini` was edited | Check the path printed by `php --ini` |
+| Very slow Firestore calls | The pure-PHP protobuf fallback is in use | Optional: also install the `protobuf` PECL extension |
+| `Class "Google\Cloud\Firestore\FirestoreClient" not found` | Dependencies missing | `composer install` |
