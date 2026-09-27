@@ -13,15 +13,20 @@
         <p class="text-gray-500 text-sm mt-1">Institutional Equipment Allocation System</p>
     </div>
 
-    <form action="#" method="POST" class="space-y-4">
+    <form action="{{ route('session.store') }}" method="POST" class="space-y-4" data-firebase-login>
+        @csrf
+        <input type="hidden" name="id_token" value="">
+
+        <p data-login-error class="text-sm text-red-600 text-left">{{ $errors->first() }}</p>
+
         <div>
-            <label class="block text-sm font-medium text-gray-700 text-left">University ID</label>
-            <input type="text" placeholder="e.g. 12345678" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500">
+            <label for="email" class="block text-sm font-medium text-gray-700 text-left">University email</label>
+            <input id="email" name="email" type="email" required autofocus autocomplete="username" placeholder="e.g. 12345678@students.latrobe.edu.au" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500">
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 text-left">Password</label>
-            <input type="password" placeholder="••••••••" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500">
+            <label for="password" class="block text-sm font-medium text-gray-700 text-left">Password</label>
+            <input id="password" name="password" type="password" required autocomplete="current-password" placeholder="••••••••" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500">
         </div>
 
         <div class="flex items-center justify-between">
@@ -32,8 +37,8 @@
             <a href="#" class="text-sm font-medium text-red-600 hover:text-red-500">Forgot password?</a>
         </div>
 
-        <button type="button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-            Sign In via SSO
+        <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-60">
+            Sign In
         </button>
     </form>
 

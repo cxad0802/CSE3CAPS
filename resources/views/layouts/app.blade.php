@@ -21,8 +21,15 @@
                     </a>
                 </div>
                 <div class="flex items-center gap-4">
-                    <span class="text-red-100 text-sm">Welcome, Customer</span>
-                    <a href="/login" class="text-white hover:text-red-200 text-sm font-medium">Logout</a>
+                    @if (session('firebase.uid'))
+                        <span class="text-red-100 text-sm">Welcome, {{ session('firebase.displayName') }}</span>
+                        <form action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="text-white hover:text-red-200 text-sm font-medium">Logout</button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="text-white hover:text-red-200 text-sm font-medium">Sign in</a>
+                    @endif
                 </div>
             </div>
         </div>
