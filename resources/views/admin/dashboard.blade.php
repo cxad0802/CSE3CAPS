@@ -30,7 +30,8 @@
                     </div>
                 </div>
                 <div>
-                    <div class="text-4xl font-bold text-gray-900">1,248</div>
+                    <div class="text-4xl font-bold text-gray-900">{{ number_format($unitsOwned) }}</div>
+                    <p class="text-xs text-gray-500">Across {{ $equipmentCount }} {{ Str::plural('item', $equipmentCount) }}</p>
                 </div>
             </div>
 
@@ -43,8 +44,10 @@
                     </div>
                 </div>
                 <div>
-                    <div class="text-4xl font-bold text-gray-900 mb-1">892</div>
-                    <p class="text-xs font-semibold text-teal-600">71% readiness</p>
+                    <div class="text-4xl font-bold text-gray-900 mb-1">{{ number_format($unitsAvailable) }}</div>
+                    <p class="text-xs font-semibold text-teal-600">
+                        {{ $unitsOwned > 0 ? round($unitsAvailable / $unitsOwned * 100) : 0 }}% readiness
+                    </p>
                 </div>
             </div>
 
@@ -57,7 +60,7 @@
                     </div>
                 </div>
                 <div>
-                    <div class="text-4xl font-bold text-gray-900 mb-1">315</div>
+                    <div class="text-4xl font-bold text-gray-900 mb-1">{{ number_format($counts['approved']) }}</div>
                     <p class="text-xs text-gray-500">Active loans</p>
                 </div>
             </div>
@@ -66,14 +69,14 @@
             <div class="border border-red-200 rounded-lg p-5 flex flex-col justify-between h-56 bg-white shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
                 <div class="flex justify-between items-start pl-2">
-                    <span class="text-sm font-bold text-red-700">In<br>Maintenance</span>
+                    <span class="text-sm font-bold text-red-700">Awaiting<br>Review</span>
                     <div class="p-1.5 bg-red-100 rounded-full text-red-600">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     </div>
                 </div>
                 <div class="pl-2">
-                    <div class="text-4xl font-bold text-red-600 mb-1">41</div>
-                    <p class="text-xs font-semibold text-red-500">Require attention</p>
+                    <div class="text-4xl font-bold text-red-600 mb-1">{{ number_format($counts['pending']) }}</div>
+                    <a href="{{ route('admin.requests', ['status' => 'pending']) }}" class="text-xs font-semibold text-red-500 hover:underline">Require attention</a>
                 </div>
             </div>
 
@@ -84,26 +87,24 @@
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-bold text-gray-900 flex items-center gap-2 text-lg">
                     <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    Critical Alerts
+                    Latest Requests
                 </h3>
-                <a href="#" class="text-xs text-red-700 font-bold hover:underline">View All</a>
+                <a href="{{ route('admin.requests') }}" class="text-xs text-red-700 font-bold hover:underline">View All</a>
             </div>
-            
+
             <div class="space-y-4 overflow-y-auto flex-1 pr-2">
-                <!-- Alert Item -->
-                <div class="relative pl-4 border-l-2 border-red-500">
-                    <div class="absolute w-2 h-2 bg-red-500 rounded-full -left-[5px] top-1.5"></div>
-                    <h4 class="text-sm font-bold text-gray-900 leading-tight">MacBook Pro 14" (Asset #8821)</h4>
-                    <p class="text-xs text-gray-500 mt-1 line-clamp-1">Reported: Battery swelling. Needs...</p>
-                    <p class="text-[10px] text-gray-400 mt-1 uppercase font-semibold">Reported 2 hrs ago</p>
-                </div>
-                <!-- Alert Item -->
-                <div class="relative pl-4 border-l-2 border-red-500">
-                    <div class="absolute w-2 h-2 bg-red-500 rounded-full -left-[5px] top-1.5"></div>
-                    <h4 class="text-sm font-bold text-gray-900 leading-tight">Dell XPS 15 (Asset #7490)</h4>
-                    <p class="text-xs text-gray-500 mt-1 line-clamp-1">Overdue by 5 days. Student...</p>
-                    <p class="text-[10px] text-red-600 mt-1 uppercase font-semibold">Flagged system</p>
-                </div>
+                @forelse ($recent as $borrowRequest)
+                    <div class="relative pl-4 border-l-2 border-red-500">
+                        <div class="absolute w-2 h-2 bg-red-500 rounded-full -left-[5px] top-1.5"></div>
+                        <h4 class="text-sm font-bold text-gray-900 leading-tight">
+                            {{ $borrowRequest->equipmentName }} ({{ $borrowRequest->reference() }})
+                        </h4>
+                        <p class="text-xs text-gray-500 mt-1 line-clamp-1">{{ $borrowRequest->userEmail }} - {{ $borrowRequest->period() }}</p>
+                        <p class="text-[10px] text-gray-400 mt-1 uppercase font-semibold">{{ $borrowRequest->statusLabel() }}</p>
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-500">No requests have been raised yet.</p>
+                @endforelse
             </div>
         </div>
     </div>

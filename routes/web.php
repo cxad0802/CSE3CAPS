@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\BorrowRequestController as AdminBorrowRequestController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Auth\FirebaseSessionController;
+use App\Http\Controllers\BorrowRequestController;
+use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\FirebaseHealthController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,33 +27,24 @@ Route::post('/session', [FirebaseSessionController::class, 'store'])->name('sess
 Route::post('/logout', [FirebaseSessionController::class, 'destroy'])->name('logout');
 
 // Browsing the catalogue does not require an account.
-Route::get('/catalog', function () {
-    return view('customer.catalog');
-})->name('catalog');
+Route::get('/catalog', [EquipmentController::class, 'index'])->name('catalog');
 
 Route::middleware('firebase.auth')->group(function () {
-    // Borrow Request Form Route
-    Route::get('/borrow/request', function () {
-        return view('borrow.create');
-    })->name('borrow.create');
+    Route::get('/borrow/request', [BorrowRequestController::class, 'create'])->name('borrow.create');
+    Route::post('/borrow/request', [BorrowRequestController::class, 'store'])->name('borrow.store');
 
-    // Customer My Requests Route
-    Route::get('/my-requests', function () {
-        return view('customer.requests');
-    })->name('requests.mine');
+    Route::get('/my-requests', [BorrowRequestController::class, 'index'])->name('requests.mine');
+    Route::post('/my-requests/{id}/cancel', [BorrowRequestController::class, 'cancel'])->name('requests.cancel');
 });
 
 Route::middleware(['firebase.auth', 'firebase.admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        // Admin Dashboard Route
-        Route::get('/dashboard', function () {
-            return view('admin.dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        // Admin Loan Requests Route
-        Route::get('/requests', function () {
-            return view('admin.requests');
-        })->name('requests');
+        Route::get('/requests', [AdminBorrowRequestController::class, 'index'])->name('requests');
+        Route::post('/requests/{id}/approve', [AdminBorrowRequestController::class, 'approve'])->name('requests.approve');
+        Route::post('/requests/{id}/reject', [AdminBorrowRequestController::class, 'reject'])->name('requests.reject');
+        Route::post('/requests/{id}/returned', [AdminBorrowRequestController::class, 'markReturned'])->name('requests.returned');
     });
