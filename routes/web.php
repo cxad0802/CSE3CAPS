@@ -22,7 +22,10 @@ Route::get('/admin/requests', function () { return view('admin.requests'); });
 Route::get('/my-requests', function () { return view('customer.requests'); });
 Route::get('/admin/inventory/create', function () { return view('admin.equipment_create'); });
 Route::get('/admin/inventory', function () { return view('admin.inventory'); });
-
+// Note: Add this route to handle the navigation to the Edit Equipment page
+Route::get('/admin/inventory/edit', function () {
+    return view('admin.inventory-edit');
+});
 // --- FIRESTORE SUBMISSION ROUTE (Used for UI testing) ---
 Route::post('/admin/inventory/store', function (Request $request) {
     $data = $request->except(['_token']);

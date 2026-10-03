@@ -1,53 +1,40 @@
+<!-- Note: Extend the master student layout -->
 @extends('layouts.app')
 
 @section('content')
-<div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
-    
-    <!-- Catalog Header -->
-    <div class="flex justify-between items-center mb-8 border-b pb-4">
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">Equipment Catalog</h1>
-            <p class="text-gray-500 mt-1">Browse and request IT equipment for your studies.</p>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Equipment Catalog</h1>
+            <p class="text-gray-500 text-sm">Browse and request university IT assets for your coursework.</p>
         </div>
-        
         <!-- Search Bar -->
-        <div class="w-1/3">
-            <div class="relative rounded-md shadow-sm">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </div>
-                <input type="text" class="focus:ring-red-500 focus:border-red-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 border" placeholder="Search laptops, cameras, cables...">
+        <div class="w-full md:w-72">
+            <div class="relative">
+                <input type="text" placeholder="Search equipment..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
         </div>
     </div>
 
     <!-- Equipment Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        <!-- Sample Equipment Item -->
-        <div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
-            <div class="h-48 bg-gray-100 flex items-center justify-center border-b">
-                <!-- Mockup Image Icon -->
-                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Mock Item Card -->
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <div class="h-48 bg-gray-100 flex items-center justify-center">
+                <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
             </div>
-            <div class="p-4">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-2">Available: 5</span>
-                        <h3 class="text-lg font-bold text-gray-900 leading-tight">Dell Latitude 7420</h3>
-                        <p class="text-sm text-gray-500 mt-1">Standard Issue Laptop</p>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <button class="w-full bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-800 transition-colors">
-                        Request to Borrow
-                    </button>
+            <div class="p-5">
+                <h3 class="text-lg font-bold text-gray-900 mb-1">MacBook Pro 14" (M2 Pro)</h3>
+                <p class="text-sm text-gray-500 mb-4 line-clamp-2">Standard university IT asset for development and coursework.</p>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full">5 Available</span>
+                    <!-- Note: Fixed static route for Direct UI testing -->
+                    <a href="/borrow/request" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors">Request</a>
                 </div>
             </div>
         </div>
-        
-        <!-- You can duplicate the "Sample Equipment Item" block above to populate the grid -->
-
     </div>
 </div>
 @endsection
