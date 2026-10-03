@@ -80,11 +80,11 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-2">Pickup Date</label>
-                            <input type="date" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-600 focus:border-red-600 block p-3 outline-none transition-colors" required>
+                            <input type="date" id="pickup_date" name="pickup_date" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-600 focus:border-red-600 block p-3 outline-none transition-colors" required>
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-2">Return Date</label>
-                            <input type="date" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-600 focus:border-red-600 block p-3 outline-none transition-colors" required>
+                            <input type="date" id="return_date" name="return_date" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-600 focus:border-red-600 block p-3 outline-none transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed" disabled required>
                         </div>
                     </div>
 
@@ -131,5 +131,33 @@
         </div>
     </main>
 
+    <!-- JavaScript for Date Validation -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const pickupInput = document.getElementById('pickup_date');
+            const returnInput = document.getElementById('return_date');
+            
+            // Prevent selecting past dates for pickup
+            const today = new Date().toISOString().split('T')[0];
+            pickupInput.min = today;
+
+            pickupInput.addEventListener('change', function() {
+                if (this.value) {
+                    // Enable return date and set its minimum allowable date to the pickup date
+                    returnInput.disabled = false;
+                    returnInput.min = this.value;
+                    
+                    // Auto-correct return date if it's currently earlier than the new pickup date
+                    if (returnInput.value && returnInput.value < this.value) {
+                        returnInput.value = this.value;
+                    }
+                } else {
+                    // Reset and disable if pickup date is cleared
+                    returnInput.disabled = true;
+                    returnInput.value = '';
+                }
+            });
+        });
+    </script>
 </body>
 </html>

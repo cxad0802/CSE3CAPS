@@ -9,7 +9,7 @@
             <h1 class="text-4xl font-bold text-gray-900 mb-2">Overview</h1>
             <p class="text-gray-500 text-sm">Real-time status of university IT assets.</p>
         </div>
-        <button class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
+        <button onclick="exportToPDF()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
             Export Data
         </button>
@@ -234,4 +234,24 @@
     </footer>
 
 </div>
+
+<!-- JavaScript for Mock PDF Download -->
+<script>
+    function exportToPDF() {
+        const mockPdfContent = '%PDF-1.4\n1 0 obj\n<< /Title (Admin Dashboard Export) >>\nendobj\n';
+        const blob = new Blob([mockPdfContent], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'UniBorrow_ExportData.pdf';
+        
+        document.body.appendChild(a);
+        a.click();
+        
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+</script>
 @endsection
