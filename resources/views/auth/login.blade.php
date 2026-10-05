@@ -15,13 +15,21 @@
             <p class="text-gray-500 text-sm mt-1">Institutional Equipment Allocation System</p>
         </div>
 
+        <!-- Note: Added error message display block for Firestore validation -->
+        @if($errors->any())
+            <div class="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
         <!-- Form updated for Laravel Backend Submission -->
         <form action="/login" method="POST" class="space-y-4">
             @csrf
             
             <div>
-                <label class="block text-sm font-medium text-gray-700 text-left">University ID</label>
-                <input type="text" name="university_id" placeholder="e.g. 12345678" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500" required>
+                <!-- Note: Changed from University ID to Email Address to match Firestore logic -->
+                <label class="block text-sm font-medium text-gray-700 text-left">Email Address</label>
+                <input type="email" name="email" placeholder="e.g. user@latrobe.edu.au" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500" required>
             </div>
 
             <div>

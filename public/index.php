@@ -1,5 +1,8 @@
 <?php
 
+putenv('GRPC_DNS_RESOLVER=native');
+putenv('GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=C:/xampp/php/extras/ssl/cacert.pem');
+
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 

@@ -54,24 +54,31 @@
 
         <!-- Right Side: Form Inputs -->
         <div class="w-full md:w-2/3 p-6 md:p-8">
-            <!-- Note: Action updated to static route for Direct UI testing -->
+            <!-- Note: Action prepared for backend submission -->
             <form action="/borrow/request" method="POST">
                 @csrf
                 
+                <!-- Note: Hidden field to pass equipment ID temporarily until dynamic routing is implemented -->
+                <input type="hidden" name="equipmentId" value="IT-LPT-8821">
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
-                        <label class="block text-sm font-bold text-gray-900 mb-2">Pickup Date</label>
-                        <input type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" required>
+                        <label class="block text-sm font-bold text-gray-900 mb-2" for="start_date">Pickup Date</label>
+                        <!-- Note: min date set to today to prevent past date selection -->
+                        <input type="date" id="start_date" name="borrowFrom" min="{{ date('Y-m-d') }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-900 mb-2">Return Date</label>
-                        <input type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-500" readonly>
+                        <label class="block text-sm font-bold text-gray-900 mb-2" for="return_date">Return Date</label>
+                        <!-- Note: removed readonly property to allow calendar selection -->
+                        <input type="date" id="return_date" name="borrowTo" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" required>
                     </div>
                 </div>
 
                 <div class="mb-6">
                     <label class="block text-sm font-bold text-gray-900 mb-2">Purpose of Loan</label>
-                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" required>
+                    <select name="purpose" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" required>
                         <option value="">Select a purpose...</option>
                         <option value="assignment">Course Assignment / Project</option>
                         <option value="research">Academic Research</option>
@@ -81,13 +88,13 @@
 
                 <div class="mb-6">
                     <label class="block text-sm font-bold text-gray-900 mb-2">Additional Details (Optional)</label>
-                    <textarea rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Mention specific project names, software requirements, or accessories needed..."></textarea>
+                    <textarea name="details" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Mention specific project names, software requirements, or accessories needed..."></textarea>
                 </div>
 
                 <div class="mb-8 flex items-start gap-2">
                     <input type="checkbox" id="policy" class="mt-1" required>
                     <label for="policy" class="text-sm text-gray-600">
-                        <!-- Note: Added future development alert to policy link -->
+                        <!-- Note: Alert placeholder for future policy document -->
                         I agree to the <a href="#" onclick="alert('Policy document will be available in future development.'); return false;" class="text-red-600 font-bold hover:underline">Equipment Borrowing Policy</a> and accept responsibility for loss or damage.
                     </label>
                 </div>
@@ -105,4 +112,33 @@
         </div>
     </div>
 </div>
+
+<!-- Note: JavaScript logic to enforce return date being strictly after pickup date -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const startDateInput = document.getElementById('start_date');
+        const returnDateInput = document.getElementById('return_date');
+
+        startDateInput.addEventListener('change', function() {
+            if (this.value) {
+                // Note: Create date object and add 1 day for minimum return date
+                const startDate = new Date(this.value);
+                startDate.setDate(startDate.getDate() + 1); 
+                
+                // Note: Format back to YYYY-MM-DD for HTML input attribute
+                const minReturnDate = startDate.toISOString().split('T')[0];
+                
+                // Note: Set the minimum selectable date on the return calendar
+                returnDateInput.setAttribute('min', minReturnDate);
+                
+                // Note: Clear return date if the user previously selected an invalid date
+                if (returnDateInput.value && returnDateInput.value < minReturnDate) {
+                    returnDateInput.value = '';
+                }
+            } else {
+                returnDateInput.removeAttribute('min');
+            }
+        });
+    });
+</script>
 @endsection
