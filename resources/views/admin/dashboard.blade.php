@@ -2,7 +2,8 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-8 py-10">
+<!-- Note: Target container for dashboard overview -->
+<div id="dashboard-content" class="max-w-7xl mx-auto px-8 py-10">
 
     <!-- Header Section -->
     <div class="flex justify-between items-end mb-8">
@@ -10,7 +11,8 @@
             <h1 class="text-4xl font-bold text-gray-900 mb-2">Overview</h1>
             <p class="text-gray-500 text-sm">Real-time status of university IT assets.</p>
         </div>
-        <button onclick="exportToPDF()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
+        <!-- Note: Export Data Button -->
+        <button id="export-btn" onclick="exportToPDF()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
             Export Data
         </button>
@@ -79,7 +81,6 @@
                     <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     Critical Alerts
                 </h3>
-                <!-- Note: Calling openWarrantyModal() -->
                 <button onclick="openWarrantyModal()" class="text-xs text-red-700 font-bold hover:underline focus:outline-none">View All</button>
             </div>
             
@@ -196,7 +197,6 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                    
                     <!-- EXPIRED Items (Highlighted Red) -->
                     <tr class="bg-red-50 hover:bg-red-100 transition-colors">
                         <td class="px-6 py-4 font-bold text-gray-900">IT-NET-002</td>
@@ -235,7 +235,6 @@
                         <td class="px-6 py-4"><span class="px-2.5 py-1 text-[11px] font-bold bg-gray-200 text-gray-700 rounded-full uppercase tracking-wider">Review Needed</span></td>
                         <td class="px-6 py-4 text-right"><button onclick="alert('Reviewing IT-AV-105...');" class="font-bold text-red-700 hover:underline focus:outline-none">Review</button></td>
                     </tr>
-
                 </tbody>
             </table>
         </div>
@@ -250,24 +249,59 @@
 </div>
 <!-- ============================================== -->
 
+<!-- Note: Load jsPDF library directly from CDN (No screenshot permission issues) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <!-- Scripts -->
 <script>
-    // Note: PDF Export function
     function exportToPDF() {
-        const mockPdfContent = '%PDF-1.4\n1 0 obj\n<< /Title (Admin Dashboard Export) >>\nendobj\n';
-        const blob = new Blob([mockPdfContent], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = 'UniBorrow_ExportData.pdf';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+        // Note: Ensure jsPDF library is loaded
+        if (typeof window.jspdf === 'undefined') {
+            alert('PDF library is still loading. Please try again.');
+            return;
+        }
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Note: Add document title and metadata text directly (Bypass canvas restrictions entirely)
+            doc.setFontSize(20);
+            doc.text("UniBorrow IT Asset Overview", 14, 20);
+
+            doc.setFontSize(11);
+            doc.setTextColor(100);
+            doc.text("Real-time status report generated from system records.", 14, 28);
+
+            // Note: Add summary text data blocks
+            doc.setFontSize(13);
+            doc.setTextColor(0);
+            doc.text("Key Performance Indicators (KPIs):", 14, 40);
+
+            doc.setFontSize(10);
+            doc.text("- Total Assets: 1,248", 20, 48);
+            doc.text("- Available Assets: 892 (71% readiness)", 20, 55);
+            doc.text("- Checked Out: 315 active loans", 20, 62);
+            doc.text("- In Maintenance: 41 items require attention", 20, 69);
+
+            // Note: Add expiring warranties section
+            doc.setFontSize(13);
+            doc.text("Expiring Warranties Summary:", 14, 85);
+
+            doc.setFontSize(10);
+            doc.text("1. IT-SRV-092 | Dell PowerEdge R740 | Exp: Oct 12, 2026", 20, 93);
+            doc.text("2. IT-LPT-441 | Lenovo ThinkPad T14 | Exp: Oct 18, 2026", 20, 100);
+            doc.text("3. IT-AV-105  | Epson Projector G-Series | Exp: Oct 25, 2026", 20, 107);
+
+            // Note: Save the generated PDF file directly
+            doc.save('UniBorrow_Overview.pdf');
+        } catch (error) {
+            console.error("Error generating text-based PDF:", error);
+            alert("Failed to export data. Please try again.");
+        }
     }
 
-    // Note: Warranty Modal toggle functions
+    // Note: Modal state management functions
     function openWarrantyModal() {
         document.getElementById('warrantyModal').classList.remove('hidden');
     }
