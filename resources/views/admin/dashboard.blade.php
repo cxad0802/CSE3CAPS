@@ -21,8 +21,9 @@
     <!-- Top Grid: KPI Cards and Alerts -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         
-        <!-- 4 Tall KPI Cards -->
+        <!-- Note: 4 Dynamic KPI Cards using controller variables -->
         <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Total Assets -->
             <div class="border border-gray-200 rounded-lg p-5 flex flex-col justify-between h-56 bg-white shadow-sm hover:shadow-md transition-shadow">
                 <div class="flex justify-between items-start">
                     <span class="text-sm font-bold text-gray-700">Total Assets</span>
@@ -30,9 +31,10 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     </div>
                 </div>
-                <div><div class="text-4xl font-bold text-gray-900">1,248</div></div>
+                <div><div class="text-4xl font-bold text-gray-900">{{ $totalAssets ?? 0 }}</div></div>
             </div>
 
+            <!-- Available Assets -->
             <div class="border border-gray-200 rounded-lg p-5 flex flex-col justify-between h-56 bg-white shadow-sm hover:shadow-md transition-shadow">
                 <div class="flex justify-between items-start">
                     <span class="text-sm font-bold text-gray-700">Available</span>
@@ -41,11 +43,12 @@
                     </div>
                 </div>
                 <div>
-                    <div class="text-4xl font-bold text-gray-900 mb-1">892</div>
-                    <p class="text-xs font-semibold text-teal-600">71% readiness</p>
+                    <div class="text-4xl font-bold text-gray-900 mb-1">{{ $availableAssets ?? 0 }}</div>
+                    <p class="text-xs font-semibold text-teal-600">Ready for use</p>
                 </div>
             </div>
 
+            <!-- Checked Out -->
             <div class="border border-gray-200 rounded-lg p-5 flex flex-col justify-between h-56 bg-white shadow-sm hover:shadow-md transition-shadow">
                 <div class="flex justify-between items-start">
                     <span class="text-sm font-bold text-gray-700">Checked Out</span>
@@ -54,11 +57,12 @@
                     </div>
                 </div>
                 <div>
-                    <div class="text-4xl font-bold text-gray-900 mb-1">315</div>
+                    <div class="text-4xl font-bold text-gray-900 mb-1">{{ $checkedOut ?? 0 }}</div>
                     <p class="text-xs text-gray-500">Active loans</p>
                 </div>
             </div>
 
+            <!-- In Maintenance -->
             <div class="border border-red-200 rounded-lg p-5 flex flex-col justify-between h-56 bg-white shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
                 <div class="flex justify-between items-start pl-2">
@@ -68,7 +72,7 @@
                     </div>
                 </div>
                 <div class="pl-2">
-                    <div class="text-4xl font-bold text-red-600 mb-1">41</div>
+                    <div class="text-4xl font-bold text-red-600 mb-1">{{ $inMaintenance ?? 0 }}</div>
                     <p class="text-xs font-semibold text-red-500">Require attention</p>
                 </div>
             </div>
@@ -170,7 +174,8 @@
 <!-- ============================================== -->
 <!-- WARRANTY MODAL (Activated by "View All" button) -->
 <!-- ============================================== -->
-<div id="warrantyModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity px-4">
+<!-- Note: Changed background to bg-black/20 and increased blur to backdrop-blur-md for a frosted glass effect -->
+<div id="warrantyModal" class="hidden fixed inset-0 bg-black/20 z-50 flex items-center justify-center backdrop-blur-md transition-opacity px-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col transform transition-all">
         
         <!-- Modal Header -->
@@ -278,11 +283,12 @@
             doc.setTextColor(0);
             doc.text("Key Performance Indicators (KPIs):", 14, 40);
 
+            // Note: Inject dynamic values from Laravel Blade into the PDF export
             doc.setFontSize(10);
-            doc.text("- Total Assets: 1,248", 20, 48);
-            doc.text("- Available Assets: 892 (71% readiness)", 20, 55);
-            doc.text("- Checked Out: 315 active loans", 20, 62);
-            doc.text("- In Maintenance: 41 items require attention", 20, 69);
+            doc.text("- Total Assets: {{ $totalAssets ?? 0 }}", 20, 48);
+            doc.text("- Available Assets: {{ $availableAssets ?? 0 }}", 20, 55);
+            doc.text("- Checked Out: {{ $checkedOut ?? 0 }} active loans", 20, 62);
+            doc.text("- In Maintenance: {{ $inMaintenance ?? 0 }} items require attention", 20, 69);
 
             // Note: Add expiring warranties section
             doc.setFontSize(13);

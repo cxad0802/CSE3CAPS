@@ -16,56 +16,62 @@
         <p class="text-gray-500 text-sm">Update asset information, change status, or log maintenance.</p>
     </div>
 
+    <!-- Note: Display Errors if any -->
+    @if($errors->any())
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+            {{ $errors->first() }}
+        </div>
+    @endif
+
     <!-- Edit Form -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <!-- Note: Form submission redirects back to inventory for UI testing -->
-        <form action="/admin/inventory" method="GET" class="p-6 md:p-8">
+        <!-- Note: Form submits via POST to the dynamic update route -->
+        <form action="/admin/inventory/update/{{ $equipment['id'] }}" method="POST" class="p-6 md:p-8">
+            @csrf
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <!-- Asset ID (Read-only) -->
+                <!-- Asset ID (Read-only Document ID from Firestore) -->
                 <div>
                     <label class="block text-sm font-bold text-gray-900 mb-2">Asset ID</label>
-                    <input type="text" value="IT-LPT-8821" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-500 cursor-not-allowed" readonly>
+                    <input type="text" value="{{ $equipment['id'] }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-500 cursor-not-allowed" readonly>
                 </div>
-                <!-- Serial Number -->
-                <div>
-                    <label class="block text-sm font-bold text-gray-900 mb-2">Serial Number</label>
-                    <input type="text" value="C02X543219" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
-                </div>
-            </div>
-
-            <div class="mb-6">
-                <label class="block text-sm font-bold text-gray-900 mb-2">Equipment Name</label>
-                <input type="text" value="MacBook Pro 14&quot; (M2 Pro)" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                
                 <!-- Category -->
                 <div>
                     <label class="block text-sm font-bold text-gray-900 mb-2">Category</label>
-                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
-                        <option value="laptops" selected>Laptops</option>
-                        <option value="cameras">AV Equipment</option>
-                        <option value="projectors">Projectors</option>
-                        <option value="accessories">Accessories</option>
-                    </select>
-                </div>
-                <!-- Status -->
-                <div>
-                    <label class="block text-sm font-bold text-gray-900 mb-2">Current Status</label>
-                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
-                        <option value="available" selected>Available</option>
-                        <option value="in-use">In Use</option>
-                        <option value="maintenance">Maintenance</option>
-                        <option value="retired">Retired / Broken</option>
+                    <!-- Note: Pre-selects the existing category from Firestore -->
+                    <select name="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" required>
+                        <option value="laptops" {{ (isset($equipment['category']) && $equipment['category'] == 'laptops') ? 'selected' : '' }}>Laptops & Computers</option>
+                        <option value="cameras" {{ (isset($equipment['category']) && $equipment['category'] == 'cameras') ? 'selected' : '' }}>Cameras & AV</option>
+                        <option value="audio" {{ (isset($equipment['category']) && $equipment['category'] == 'audio') ? 'selected' : '' }}>Audio Equipment</option>
+                        <option value="projectors" {{ (isset($equipment['category']) && $equipment['category'] == 'projectors') ? 'selected' : '' }}>Projectors</option>
+                        <option value="accessories" {{ (isset($equipment['category']) && $equipment['category'] == 'accessories') ? 'selected' : '' }}>Accessories</option>
                     </select>
                 </div>
             </div>
 
-            <!-- Maintenance Notes -->
+            <!-- Equipment Name -->
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-gray-900 mb-2">Equipment Name</label>
+                <input type="text" name="equipment_name" value="{{ $equipment['name'] ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" required>
+            </div>
+
+            <div class="mb-6">
+                <!-- Status -->
+                <label class="block text-sm font-bold text-gray-900 mb-2">Current Status</label>
+                <!-- Note: Pre-selects the existing status from Firestore -->
+                <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" required>
+                    <option value="available" {{ (isset($equipment['status']) && $equipment['status'] == 'available') ? 'selected' : '' }}>Available (Ready for borrowing)</option>
+                    <option value="in-use" {{ (isset($equipment['status']) && $equipment['status'] == 'in-use') ? 'selected' : '' }}>In Use</option>
+                    <option value="maintenance" {{ (isset($equipment['status']) && $equipment['status'] == 'maintenance') ? 'selected' : '' }}>Maintenance (Requires repair)</option>
+                    <option value="retired" {{ (isset($equipment['status']) && $equipment['status'] == 'retired') ? 'selected' : '' }}>Retired / Broken</option>
+                </select>
+            </div>
+
+            <!-- Maintenance / Description Notes -->
             <div class="mb-8">
-                <label class="block text-sm font-bold text-gray-900 mb-2">Maintenance Notes (Optional)</label>
-                <textarea rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Add notes about repairs or condition..."></textarea>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Description / Notes</label>
+                <textarea name="notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Add notes about repairs, condition, or specs...">{{ $equipment['description'] ?? '' }}</textarea>
             </div>
 
             <!-- Form Actions -->

@@ -20,21 +20,37 @@
 
     <!-- Equipment Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Mock Item Card -->
+        
+        <!-- Note: Loop through the available catalog data from Firestore -->
+        @forelse($catalog as $item)
         <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <div class="h-48 bg-gray-100 flex items-center justify-center">
                 <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
             </div>
             <div class="p-5">
-                <h3 class="text-lg font-bold text-gray-900 mb-1">MacBook Pro 14" (M2 Pro)</h3>
-                <p class="text-sm text-gray-500 mb-4 line-clamp-2">Standard university IT asset for development and coursework.</p>
+                <!-- Note: Render actual Firestore fields for 'name' and 'description' -->
+                <h3 class="text-lg font-bold text-gray-900 mb-1">{{ $item['name'] ?? 'Unknown Equipment' }}</h3>
+                <p class="text-sm text-gray-500 mb-4 line-clamp-2">
+                    {{ $item['description'] ?? 'Standard university IT asset for development and coursework.' }}
+                </p>
                 <div class="flex justify-between items-center">
-                    <span class="text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full">5 Available</span>
-                    <!-- Note: Fixed static route for Direct UI testing -->
-                    <a href="/borrow/request" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors">Request</a>
+                    <span class="text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full">Available</span>
+                    
+                    <!-- Note: Encode 'name' properly to pass it cleanly via the query string -->
+                    <a href="/borrow/request?equipmentId={{ $item['id'] }}&name={{ urlencode($item['name'] ?? 'Unknown Item') }}" 
+                       class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors">
+                        Request
+                    </a>
                 </div>
             </div>
         </div>
+        @empty
+        <!-- Note: Fallback message when no items match -->
+        <div class="col-span-full text-center py-10 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-gray-500">
+            No equipment is currently available for borrowing. Please check back later.
+        </div>
+        @endforelse
+
     </div>
 </div>
 @endsection
