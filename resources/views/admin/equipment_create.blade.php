@@ -40,6 +40,7 @@
                         <option value="" disabled selected>Select a category</option>
                         <option value="laptops">Laptops & Computers</option>
                         <option value="cameras">Cameras & AV</option>
+                        <option value="audio">Audio Equipment</option>
                         <option value="projectors">Projectors</option>
                         <option value="accessories">Cables & Accessories</option>
                     </select>

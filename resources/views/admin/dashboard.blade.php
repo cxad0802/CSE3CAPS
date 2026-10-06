@@ -89,18 +89,16 @@
             </div>
             
             <div class="space-y-4 overflow-y-auto flex-1 pr-2">
-                <div class="relative pl-4 border-l-2 border-red-500">
-                    <div class="absolute w-2 h-2 bg-red-500 rounded-full -left-[5px] top-1.5"></div>
-                    <h4 class="text-sm font-bold text-gray-900 leading-tight">MacBook Pro 14" (Asset #8821)</h4>
-                    <p class="text-xs text-gray-500 mt-1 line-clamp-1">Reported: Battery swelling. Needs...</p>
-                    <p class="text-[10px] text-gray-400 mt-1 uppercase font-semibold">Reported 2 hrs ago</p>
-                </div>
-                <div class="relative pl-4 border-l-2 border-red-500">
-                    <div class="absolute w-2 h-2 bg-red-500 rounded-full -left-[5px] top-1.5"></div>
-                    <h4 class="text-sm font-bold text-gray-900 leading-tight">Dell XPS 15 (Asset #7490)</h4>
-                    <p class="text-xs text-gray-500 mt-1 line-clamp-1">Overdue by 5 days. Student...</p>
-                    <p class="text-[10px] text-red-600 mt-1 uppercase font-semibold">Flagged system</p>
-                </div>
+                @forelse ($criticalAlerts as $alert)
+                    <div class="relative pl-4 border-l-2 border-red-500">
+                        <div class="absolute w-2 h-2 bg-red-500 rounded-full -left-[5px] top-1.5"></div>
+                        <h4 class="text-sm font-bold text-gray-900 leading-tight">{{ $alert['title'] }}</h4>
+                        <p class="text-xs text-gray-500 mt-1 line-clamp-1">{{ $alert['message'] }}</p>
+                        <p class="text-[10px] text-gray-400 mt-1 uppercase font-semibold">{{ $alert['time'] }}</p>
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-500">No critical alerts right now.</p>
+                @endforelse
             </div>
         </div>
     </div>
@@ -123,24 +121,18 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    <tr>
-                        <td class="py-3 font-medium text-gray-900">IT-SRV-092</td>
-                        <td class="py-3 text-gray-600">Dell PowerEdge R740</td>
-                        <td class="py-3 font-semibold text-red-600">Oct 12, 2026</td>
-                        <td class="py-3 text-right"><button onclick="alert('Renewing contract for IT-SRV-092...');" class="font-bold text-red-700 hover:underline focus:outline-none">Renew</button></td>
-                    </tr>
-                    <tr>
-                        <td class="py-3 font-medium text-gray-900">IT-LPT-441</td>
-                        <td class="py-3 text-gray-600">Lenovo ThinkPad T14</td>
-                        <td class="py-3 font-semibold text-red-600">Oct 18, 2026</td>
-                        <td class="py-3 text-right"><button onclick="alert('Renewing contract for IT-LPT-441...');" class="font-bold text-red-700 hover:underline focus:outline-none">Renew</button></td>
-                    </tr>
-                    <tr>
-                        <td class="py-3 font-medium text-gray-900">IT-AV-105</td>
-                        <td class="py-3 text-gray-600">Epson Projector G-Series</td>
-                        <td class="py-3 text-gray-600">Oct 25, 2026</td>
-                        <td class="py-3 text-right"><button onclick="alert('Reviewing contract for IT-AV-105...');" class="font-bold text-red-700 hover:underline focus:outline-none">Review</button></td>
-                    </tr>
+                    @forelse ($expiringWarranties as $warranty)
+                        <tr>
+                            <td class="py-3 font-medium text-gray-900">{{ $warranty['id'] }}</td>
+                            <td class="py-3 text-gray-600">{{ $warranty['name'] }}</td>
+                            <td class="py-3 font-semibold {{ $warranty['expired'] ? 'text-red-600' : 'text-orange-600' }}">{{ $warranty['expiration'] }}</td>
+                            <td class="py-3 text-right"><span class="font-bold text-red-700">{{ $warranty['action'] }}</span></td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="py-6 text-sm text-gray-500">No warranties expiring in the next 30 days.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -150,22 +142,14 @@
             <h3 class="font-bold text-gray-900 text-lg mb-1">Frequently Borrowed</h3>
             <p class="text-xs text-gray-500 mb-6">Top categories by volume this semester.</p>
             <div class="space-y-5">
-                <div>
-                    <div class="flex justify-between text-sm mb-1"><span class="font-semibold text-gray-800">Standard Laptops (Windows)</span><span class="text-gray-500 text-xs">420 loans</span></div>
-                    <div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-red-700 h-2 rounded-full" style="width: 85%"></div></div>
-                </div>
-                <div>
-                    <div class="flex justify-between text-sm mb-1"><span class="font-semibold text-gray-800">MacBooks</span><span class="text-gray-500 text-xs">315 loans</span></div>
-                    <div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-red-600 h-2 rounded-full opacity-80" style="width: 65%"></div></div>
-                </div>
-                <div>
-                    <div class="flex justify-between text-sm mb-1"><span class="font-semibold text-gray-800">DSLR Cameras</span><span class="text-gray-500 text-xs">180 loans</span></div>
-                    <div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-red-900 h-2 rounded-full opacity-60" style="width: 40%"></div></div>
-                </div>
-                <div>
-                    <div class="flex justify-between text-sm mb-1"><span class="font-semibold text-gray-800">Audio Recorders</span><span class="text-gray-500 text-xs">95 loans</span></div>
-                    <div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-red-200 h-2 rounded-full" style="width: 20%"></div></div>
-                </div>
+                @forelse ($frequentlyBorrowed as $category)
+                    <div>
+                        <div class="flex justify-between text-sm mb-1"><span class="font-semibold text-gray-800">{{ $category['name'] }}</span><span class="text-gray-500 text-xs">{{ $category['count'] }} {{ Str::plural('loan', $category['count']) }}</span></div>
+                        <div class="w-full bg-gray-100 rounded-full h-2"><div class="{{ $category['colorClass'] }} h-2 rounded-full" style="width: {{ $category['percentage'] }}%"></div></div>
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-500">No borrowing history yet.</p>
+                @endforelse
             </div>
         </div>
     </div>
@@ -202,44 +186,19 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                    <!-- EXPIRED Items (Highlighted Red) -->
-                    <tr class="bg-red-50 hover:bg-red-100 transition-colors">
-                        <td class="px-6 py-4 font-bold text-gray-900">IT-NET-002</td>
-                        <td class="px-6 py-4 text-gray-800 font-medium">Cisco Catalyst 2960 Switch</td>
-                        <td class="px-6 py-4 font-bold text-red-600">Sep 15, 2026</td>
-                        <td class="px-6 py-4"><span class="px-2.5 py-1 text-[11px] font-bold bg-red-200 text-red-800 rounded-full uppercase tracking-wider">Expired</span></td>
-                        <td class="px-6 py-4 text-right"><button onclick="alert('Processing renewal for IT-NET-002...');" class="font-bold text-red-700 hover:underline focus:outline-none">Renew Now</button></td>
-                    </tr>
-                    <tr class="bg-red-50 hover:bg-red-100 transition-colors">
-                        <td class="px-6 py-4 font-bold text-gray-900">IT-LPT-108</td>
-                        <td class="px-6 py-4 text-gray-800 font-medium">MacBook Pro 13" (M1)</td>
-                        <td class="px-6 py-4 font-bold text-red-600">Aug 30, 2026</td>
-                        <td class="px-6 py-4"><span class="px-2.5 py-1 text-[11px] font-bold bg-red-200 text-red-800 rounded-full uppercase tracking-wider">Expired</span></td>
-                        <td class="px-6 py-4 text-right"><button onclick="alert('Processing renewal for IT-LPT-108...');" class="font-bold text-red-700 hover:underline focus:outline-none">Renew Now</button></td>
-                    </tr>
-                    
-                    <!-- EXPIRING SOON Items -->
-                    <tr class="bg-white hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 font-medium text-gray-900">IT-SRV-092</td>
-                        <td class="px-6 py-4 text-gray-600">Dell PowerEdge R740</td>
-                        <td class="px-6 py-4 font-semibold text-orange-600">Oct 12, 2026</td>
-                        <td class="px-6 py-4"><span class="px-2.5 py-1 text-[11px] font-bold bg-orange-100 text-orange-800 rounded-full uppercase tracking-wider">Expiring</span></td>
-                        <td class="px-6 py-4 text-right"><button onclick="alert('Processing renewal for IT-SRV-092...');" class="font-bold text-red-700 hover:underline focus:outline-none">Renew</button></td>
-                    </tr>
-                    <tr class="bg-white hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 font-medium text-gray-900">IT-LPT-441</td>
-                        <td class="px-6 py-4 text-gray-600">Lenovo ThinkPad T14</td>
-                        <td class="px-6 py-4 font-semibold text-orange-600">Oct 18, 2026</td>
-                        <td class="px-6 py-4"><span class="px-2.5 py-1 text-[11px] font-bold bg-orange-100 text-orange-800 rounded-full uppercase tracking-wider">Expiring</span></td>
-                        <td class="px-6 py-4 text-right"><button onclick="alert('Processing renewal for IT-LPT-441...');" class="font-bold text-red-700 hover:underline focus:outline-none">Renew</button></td>
-                    </tr>
-                    <tr class="bg-white hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 font-medium text-gray-900">IT-AV-105</td>
-                        <td class="px-6 py-4 text-gray-600">Epson Projector G-Series</td>
-                        <td class="px-6 py-4 font-semibold text-gray-600">Oct 25, 2026</td>
-                        <td class="px-6 py-4"><span class="px-2.5 py-1 text-[11px] font-bold bg-gray-200 text-gray-700 rounded-full uppercase tracking-wider">Review Needed</span></td>
-                        <td class="px-6 py-4 text-right"><button onclick="alert('Reviewing IT-AV-105...');" class="font-bold text-red-700 hover:underline focus:outline-none">Review</button></td>
-                    </tr>
+                    @forelse ($allWarranties as $warranty)
+                        <tr class="{{ $warranty['expired'] ? 'bg-red-50 hover:bg-red-100' : 'bg-white hover:bg-gray-50' }} transition-colors">
+                            <td class="px-6 py-4 font-bold text-gray-900">{{ $warranty['id'] }}</td>
+                            <td class="px-6 py-4 text-gray-800 font-medium">{{ $warranty['name'] }}</td>
+                            <td class="px-6 py-4 font-bold {{ $warranty['expired'] ? 'text-red-600' : 'text-orange-600' }}">{{ $warranty['expiration'] }}</td>
+                            <td class="px-6 py-4"><span class="px-2.5 py-1 text-[11px] font-bold {{ $warranty['expired'] ? 'bg-red-200 text-red-800' : 'bg-orange-100 text-orange-800' }} rounded-full uppercase tracking-wider">{{ $warranty['action'] }}</span></td>
+                            <td class="px-6 py-4 text-right"><a href="{{ route('admin.inventory.edit', ['id' => $warranty['id']]) }}" class="font-bold text-red-700 hover:underline">Open</a></td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">No warranties need attention.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -295,9 +254,11 @@
             doc.text("Expiring Warranties Summary:", 14, 85);
 
             doc.setFontSize(10);
-            doc.text("1. IT-SRV-092 | Dell PowerEdge R740 | Exp: Oct 12, 2026", 20, 93);
-            doc.text("2. IT-LPT-441 | Lenovo ThinkPad T14 | Exp: Oct 18, 2026", 20, 100);
-            doc.text("3. IT-AV-105  | Epson Projector G-Series | Exp: Oct 25, 2026", 20, 107);
+            @forelse ($expiringWarranties as $index => $warranty)
+            doc.text("{{ $index + 1 }}. {{ $warranty['id'] }} | {{ $warranty['name'] }} | {{ $warranty['expiration'] }}", 20, {{ 93 + ($index * 7) }});
+            @empty
+            doc.text("None recorded.", 20, 93);
+            @endforelse
 
             // Note: Save the generated PDF file directly
             doc.save('UniBorrow_Overview.pdf');

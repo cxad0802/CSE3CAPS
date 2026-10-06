@@ -54,6 +54,12 @@
         <div class="w-full md:w-2/3 p-6 md:p-8">
             <form action="/borrow/request" method="POST">
                 @csrf
+
+                @if ($errors->any())
+                    <div class="mb-6 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                        {{ $errors->first() }}
+                    </div>
+                @endif
                 
                 <!-- Note: Hidden fields to send dynamic equipment details to Firestore -->
                 <input type="hidden" name="equipmentId" value="{{ $equipmentId }}">

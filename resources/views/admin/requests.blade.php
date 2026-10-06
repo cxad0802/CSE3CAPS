@@ -45,6 +45,14 @@
         </div>
     @endif
 
+    <!-- Note: Raised when a decision is refused, for example because another
+         administrator acted on the request first or stock ran out -->
+    @if($errors->any())
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+            {{ $errors->first() }}
+        </div>
+    @endif
+
     <!-- Tabs -->
     <div class="border-b border-gray-200 mb-6 overflow-x-auto">
         <nav class="flex space-x-8 min-w-max" aria-label="Tabs">

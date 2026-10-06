@@ -7,6 +7,7 @@ use Google\Cloud\Firestore\DocumentSnapshot;
 use Google\Cloud\Firestore\FieldValue;
 use Google\Cloud\Firestore\FieldValue\ServerTimestampValue;
 use Google\Cloud\Firestore\FirestoreClient;
+use Google\Cloud\Firestore\Query;
 
 /**
  * Access layer for the Firestore collections used by the borrowing system.
@@ -56,6 +57,29 @@ class FirestoreService
         }
 
         return $this->client->collection($name);
+    }
+
+    /**
+     * Run a query and return its documents, skipping the placeholder that
+     * firestore:init writes to bring a collection into existence.
+     *
+     * Firestore cannot express "where the document id is not _schema", so the
+     * placeholder is filtered out here instead. Every listing screen must go
+     * through this method rather than calling documents() directly.
+     *
+     * @return list<DocumentSnapshot>
+     */
+    public function documentsOf(Query|CollectionReference $query): array
+    {
+        $documents = [];
+
+        foreach ($query->documents() as $document) {
+            if ($document->exists() && $document->id() !== self::SCHEMA_DOCUMENT_ID) {
+                $documents[] = $document;
+            }
+        }
+
+        return $documents;
     }
 
     /**

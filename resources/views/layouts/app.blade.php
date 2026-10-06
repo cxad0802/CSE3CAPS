@@ -39,14 +39,22 @@
         
         <!-- User Info Section -->
         @if(!request()->is('login'))
+        @php
+            // Note: Written by the session controller when the Firebase ID token was verified.
+            $signedIn = session('firebase');
+        @endphp
         <div class="flex items-center gap-3 md:gap-4 text-sm">
-            <!-- Student ID Display -->
-            <span class="text-gray-300 hidden sm:inline">Student ID: <strong class="text-white">22244263</strong></span>
-            
+            @if($signedIn)
+                <span class="text-gray-300 hidden sm:inline">Signed in as <strong class="text-white">{{ $signedIn['email'] }}</strong></span>
+            @else
+                <a href="{{ route('login') }}" class="text-gray-300 hover:text-white transition-colors">Sign in</a>
+            @endif
+
+            @if($signedIn)
             <div class="relative user-menu-container">
                 <button onclick="toggleDropdown('studentDropdown')" class="flex items-center gap-1 md:gap-2 focus:outline-none hover:opacity-80 transition-opacity">
                     <div class="w-8 h-8 rounded-full bg-red-700 flex items-center justify-center font-bold text-white text-xs md:text-sm">
-                        S
+                        {{ strtoupper(substr($signedIn['displayName'] ?: $signedIn['email'], 0, 1)) }}
                     </div>
                     <svg class="w-4 h-4 text-gray-400 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
@@ -63,6 +71,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
         @endif
     </header>

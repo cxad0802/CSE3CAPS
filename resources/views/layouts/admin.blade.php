@@ -36,13 +36,17 @@
             </nav>
         </div>
         
+        @php
+            // Note: Written by the session controller when the Firebase ID token was verified.
+            $signedIn = session('firebase');
+        @endphp
         <div class="flex items-center gap-4 text-sm">
-            <span class="text-gray-600 hidden md:inline">Admin: <strong class="text-gray-900">IT Services</strong></span>
+            <span class="text-gray-600 hidden md:inline">Admin: <strong class="text-gray-900">{{ $signedIn['email'] ?? 'Unknown' }}</strong></span>
             
             <!-- User Dropdown Menu -->
             <div class="relative user-menu-container">
                 <button onclick="toggleDropdown('adminDropdown')" class="flex items-center gap-2 focus:outline-none hover:bg-gray-50 p-1.5 rounded-lg transition-colors">
-                    <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center font-bold text-white text-xs">AD</div>
+                    <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center font-bold text-white text-xs">{{ strtoupper(substr($signedIn['displayName'] ?? 'A', 0, 2)) }}</div>
                     <svg class="w-4 h-4 text-gray-500 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
 

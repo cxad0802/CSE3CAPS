@@ -23,6 +23,14 @@
         </div>
     @endif
 
+    <!-- Note: Raised when a cancel or return is refused, for example because an
+         administrator reviewed the request first -->
+    @if($errors->any())
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            {{ $errors->first() }}
+        </div>
+    @endif
+
     <!-- Dynamic Filter Tabs -->
     <div class="flex gap-4 mb-6 border-b border-gray-200 pb-2 overflow-x-auto">
         <a href="/my-requests?filter=all" class="text-sm font-medium pb-2 whitespace-nowrap {{ $currentFilter === 'all' ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-500 hover:text-gray-700' }}">All Requests</a>

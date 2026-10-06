@@ -62,7 +62,9 @@
             "dev-master": "12.x-dev"
         },
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+                "kreait/laravel-firebase"
+            ]
         }
     },
     "config": {
