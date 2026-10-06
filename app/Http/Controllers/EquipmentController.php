@@ -16,20 +16,24 @@ class EquipmentController extends Controller
     {
         $search = trim((string) $request->query('search', ''));
 
-        // Ordered by name alone: adding category would need the composite index
+        // Ordered by name alone, and the status filter is applied below rather
+        // than with a where(): combining the two would need the composite index
         // from firestore.indexes.json, which is not deployed to the project yet.
-        $query = $firestore->equipments()->orderBy('name');
+        $equipments = array_map(
+            Equipment::fromSnapshot(...),
+            $firestore->documentsOf($firestore->equipments()->orderBy('name')),
+        );
 
-        $equipments = array_values(array_filter(
-            array_map(
-                Equipment::fromSnapshot(...),
-                $firestore->documentsOf($query),
-            ),
-            fn (Equipment $equipment) => $equipment->matches($search),
-        ));
+        $catalog = array_map(
+            fn (Equipment $equipment) => $equipment->toArray(),
+            array_values(array_filter(
+                $equipments,
+                fn (Equipment $equipment) => $equipment->isBorrowable() && $equipment->matches($search),
+            )),
+        );
 
         return view('customer.catalog', [
-            'equipments' => $equipments,
+            'catalog' => $catalog,
             'search' => $search,
         ]);
     }

@@ -3,8 +3,10 @@
 namespace App\Support;
 
 use DateTimeImmutable;
+use DateTimeInterface;
 use Google\Cloud\Core\Timestamp;
 use Google\Cloud\Firestore\DocumentSnapshot;
+use Throwable;
 
 /**
  * One borrowRequests document, shaped for the Blade views.
@@ -70,48 +72,19 @@ readonly class BorrowRequest
     }
 
     /**
-     * Short human-facing reference. Firestore ids are 20 random characters,
-     * which is unusable in conversation, so only the leading run is shown.
+     * A student may withdraw a request only while nobody has acted on it.
      */
-    public function reference(): string
+    public function isCancellable(): bool
     {
-        return '#'.strtoupper(substr($this->id, 0, 6));
-    }
-
-    public function statusLabel(): string
-    {
-        return match ($this->status) {
-            'pending' => 'Pending approval',
-            'approved' => 'Active loan',
-            'rejected' => 'Rejected',
-            'returned' => 'Returned',
-            'cancelled' => 'Cancelled',
-        };
+        return $this->status === 'pending';
     }
 
     /**
-     * Tailwind classes for the status pill, kept beside the label so the two
-     * cannot drift apart.
+     * A loan can be handed back once, after it was approved.
      */
-    public function statusClasses(): string
+    public function isReturnable(): bool
     {
-        return match ($this->status) {
-            'pending' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
-            'approved' => 'bg-green-100 text-green-800 border-green-200',
-            'rejected' => 'bg-red-100 text-red-800 border-red-200',
-            'returned' => 'bg-gray-100 text-gray-800 border-gray-200',
-            'cancelled' => 'bg-gray-100 text-gray-500 border-gray-200',
-        };
-    }
-
-    public function accentClasses(): string
-    {
-        return match ($this->status) {
-            'pending' => 'bg-yellow-400',
-            'approved' => 'bg-green-500',
-            'rejected' => 'bg-red-500',
-            default => 'bg-gray-400',
-        };
+        return $this->status === 'approved';
     }
 
     public function period(): string
@@ -120,32 +93,79 @@ readonly class BorrowRequest
             return 'Dates not recorded';
         }
 
-        return $this->borrowFrom->format('M j').' - '.$this->borrowTo->format('M j');
-    }
-
-    public function days(): ?int
-    {
-        if (! $this->borrowFrom || ! $this->borrowTo) {
-            return null;
-        }
-
-        return (int) $this->borrowFrom->diff($this->borrowTo)->days;
+        return $this->borrowFrom->format('M j').' to '.$this->borrowTo->format('M j, Y');
     }
 
     /**
-     * A student may withdraw a request only while nobody has acted on it.
+     * Free-text match used by the admin search box. Firestore has no substring
+     * search, so the queue is filtered here after it has been read.
      */
-    public function isCancellable(): bool
+    public function matches(string $term): bool
     {
-        return $this->status === 'pending';
+        if ($term === '') {
+            return true;
+        }
+
+        $haystack = mb_strtolower($this->id.' '.$this->userEmail.' '.$this->equipmentName);
+
+        return str_contains($haystack, mb_strtolower($term));
     }
 
+    /**
+     * Row for resources/views/customer/requests.blade.php.
+     *
+     * @return array<string, mixed>
+     */
+    public function forStudentList(): array
+    {
+        return [
+            'id' => $this->id,
+            'equipmentName' => $this->equipmentName,
+            'createdAt' => $this->createdAt?->format('M j, Y') ?? 'N/A',
+            'status' => $this->status,
+        ];
+    }
+
+    /**
+     * Row for resources/views/admin/requests.blade.php.
+     *
+     * @return array<string, mixed>
+     */
+    public function forAdminQueue(): array
+    {
+        return [
+            'id' => $this->id,
+            'created_at' => $this->createdAt?->format('M j, Y H:i') ?? 'N/A',
+            'borrower_name' => $this->userEmail !== '' ? $this->userEmail : 'Unknown borrower',
+            'equipment_name' => $this->equipmentName,
+            'duration' => $this->period(),
+            'status' => $this->status,
+        ];
+    }
+
+    /**
+     * Firestore returns a Timestamp for documents this application wrote, but
+     * dates entered through the earlier closure-based screens were stored as
+     * plain strings, so both have to be understood.
+     */
     private static function toDate(mixed $value): ?DateTimeImmutable
     {
         if ($value instanceof Timestamp) {
             return DateTimeImmutable::createFromInterface($value->get());
         }
 
-        return $value instanceof DateTimeImmutable ? $value : null;
+        if ($value instanceof DateTimeInterface) {
+            return DateTimeImmutable::createFromInterface($value);
+        }
+
+        if (is_string($value) && $value !== '') {
+            try {
+                return new DateTimeImmutable($value);
+            } catch (Throwable) {
+                return null;
+            }
+        }
+
+        return null;
     }
 }

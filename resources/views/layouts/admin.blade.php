@@ -3,110 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Portal - UniBorrow IT</title>
-    <!-- Connect to Vite for CSS/JS compilation -->
+    <title>UniBorrow IT - Admin Dashboard</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-50 font-sans antialiased flex h-screen overflow-hidden">
+<body class="bg-gray-100 font-sans antialiased flex flex-col min-h-screen relative">
 
-    <!-- Left Sidebar -->
-    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col justify-between flex-shrink-0">
-        <div>
-            <!-- User Profile Section -->
-            <div class="p-6 flex items-center gap-3 border-b border-dashed border-gray-200 mb-4">
-                <img src="https://ui-avatars.com/api/?name=Manager&background=random" alt="Avatar" class="w-10 h-10 rounded-full shadow-sm">
-                <div>
-                    <h2 class="text-red-700 font-bold text-sm">Manager Portal</h2>
-                    <p class="text-xs text-gray-500">{{ session('firebase.email', 'IT Services Administration') }}</p>
+    <!-- Admin Top Navbar -->
+    <header class="bg-white text-gray-900 h-16 flex items-center justify-between px-4 md:px-8 border-b border-gray-200 shadow-sm z-40 relative">
+        <div class="flex items-center gap-4 md:gap-8">
+            
+            <!-- Mobile Hamburger Button -->
+            <!-- Note: Visible only on mobile screens (md:hidden) -->
+            <button onclick="toggleMobileNav('adminMobileNav')" class="md:hidden text-gray-600 hover:text-gray-900 focus:outline-none p-1">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+
+            <!-- Logo -->
+            <div class="flex items-center gap-2 cursor-pointer" onclick="window.location.href='/admin/dashboard'">
+                <div class="p-1.5 bg-red-600 rounded-md hidden md:block">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                 </div>
-            </div>
-
-            <!-- Navigation Links -->
-            <nav class="px-4 space-y-1">
-                <a href="/admin/dashboard" class="flex items-center gap-3 px-3 py-2 bg-red-700 text-white rounded-md text-sm font-medium shadow-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                    Dashboard
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                    Inventory
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    Maintenance
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    Reports
-                </a>
-                
-                <!-- Action Button -->
-                <div class="pt-4">
-                    <button class="w-full bg-red-700 hover:bg-red-800 text-white py-2 px-4 rounded-md text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
-                        Add New Equipment
-                    </button>
-                </div>
-            </nav>
-        </div>
-
-        <!-- Bottom Navigation Links -->
-        <div class="p-4 border-t border-dashed border-gray-200 space-y-1">
-            <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0..."></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                Settings
-            </a>
-            <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                Support
-            </a>
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="w-full flex items-center gap-3 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md text-sm font-medium transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                    Logout
-                </button>
-            </form>
-        </div>
-    </aside>
-
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col overflow-hidden bg-white">
-        
-        <!-- Top Dark Navbar -->
-        <header class="bg-[#1c1c1c] text-white h-16 flex items-center justify-between px-8 flex-shrink-0">
-            <div class="flex items-center gap-10">
-                <!-- Branding -->
-                <div class="flex items-center gap-2">
-                    <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                    <span class="font-bold text-lg tracking-wide">UniBorrow IT</span>
-                </div>
-                
-                <!-- Main Nav -->
-                <nav class="hidden md:flex gap-6 text-sm text-gray-300 font-medium">
-                    <a href="#" class="hover:text-white transition-colors">The Library</a>
-                    <a href="#" class="hover:text-white transition-colors">Borrowing</a>
-                    <a href="#" class="hover:text-white transition-colors">Equipment</a>
-                    <a href="#" class="hover:text-white transition-colors">Research</a>
-                </nav>
+                <span class="font-bold text-lg tracking-wide text-gray-900">Admin Portal</span>
             </div>
             
-            <!-- Right Actions -->
-            <div class="flex items-center gap-5 text-gray-300">
-                <button class="hover:text-white transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex gap-6 text-sm font-medium text-gray-600">
+                <a href="/admin/dashboard" class="hover:text-red-600 transition-colors">Dashboard</a>
+                <a href="/admin/inventory" class="hover:text-red-600 transition-colors">Inventory</a>
+                <a href="/admin/requests" class="hover:text-red-600 transition-colors">Requests</a>
+            </nav>
+        </div>
+        
+        @php
+            // Note: Written by the session controller when the Firebase ID token was verified.
+            $signedIn = session('firebase');
+        @endphp
+        <div class="flex items-center gap-4 text-sm">
+            <span class="text-gray-600 hidden md:inline">Admin: <strong class="text-gray-900">{{ $signedIn['email'] ?? 'Unknown' }}</strong></span>
+            
+            <!-- User Dropdown Menu -->
+            <div class="relative user-menu-container">
+                <button onclick="toggleDropdown('adminDropdown')" class="flex items-center gap-2 focus:outline-none hover:bg-gray-50 p-1.5 rounded-lg transition-colors">
+                    <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center font-bold text-white text-xs">{{ strtoupper(substr($signedIn['displayName'] ?? 'A', 0, 2)) }}</div>
+                    <svg class="w-4 h-4 text-gray-500 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <button class="hover:text-white transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-            </div>
-        </header>
 
-        <!-- Scrollable Page Content -->
-        <main class="flex-1 overflow-y-auto">
-            @yield('content')
-        </main>
+                <!-- Dropdown Content -->
+                <div id="adminDropdown" class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden">
+                    <div class="py-1">
+                        <a href="#" onclick="alert('This feature will be developed in the future.'); return false;" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors">Admin Profile</a>
+                        <a href="#" onclick="alert('This feature will be developed in the future.'); return false;" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors">System Settings</a>
+                        <hr class="border-gray-200 my-1">
+                        <button onclick="openLogoutModal(); toggleDropdown('adminDropdown')" class="w-full text-left block px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+                            Log out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Dropdown Menu for Admin -->
+    <!-- Note: Toggled via hamburger button on mobile devices -->
+    <div id="adminMobileNav" class="dropdown-menu hidden md:hidden bg-white w-full absolute top-16 left-0 z-30 shadow-lg border-b border-gray-200">
+        <div class="px-4 py-2 space-y-1">
+            <a href="/admin/dashboard" class="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors">Dashboard</a>
+            <a href="/admin/inventory" class="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors">Inventory</a>
+            <a href="/admin/requests" class="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors">Requests</a>
+        </div>
     </div>
 
+    <!-- Main Content Area -->
+    <main class="flex-1 w-full relative flex flex-col">
+        @yield('content')
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="bg-gray-100 p-8 mt-auto border-t border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div class="md:col-span-1">
+            <div class="flex items-center gap-2 mb-4">
+                <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span class="font-bold text-gray-900">UniBorrow IT</span>
+            </div>
+            <p class="text-xs text-gray-500">© 2026 University IT Services. All rights reserved.</p>
+        </div>
+        
+        <div>
+            <h4 class="text-xs font-bold text-gray-900 uppercase mb-3">Institutional</h4>
+            <ul class="text-xs text-gray-500 space-y-2">
+                <li><a href="#" onclick="alert('This feature will be developed in the future.'); return false;" class="hover:text-gray-900 transition-colors">Institutional Links</a></li>
+                <li><a href="#" onclick="alert('This feature will be developed in the future.'); return false;" class="hover:text-gray-900 transition-colors">Accessibility</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <h4 class="text-xs font-bold text-gray-900 uppercase mb-3">Support</h4>
+            <ul class="text-xs text-gray-500 space-y-2">
+                <li><a href="#" onclick="alert('This feature will be developed in the future.'); return false;" class="hover:text-gray-900 transition-colors">Contact Info</a></li>
+                <li><a href="#" onclick="alert('This feature will be developed in the future.'); return false;" class="hover:text-gray-900 transition-colors">Privacy Policy</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <h4 class="text-xs font-bold text-gray-900 uppercase mb-3">Connect</h4>
+            <div class="flex gap-4 text-gray-500">
+                <a href="#" onclick="alert('This feature will be developed in the future.'); return false;" class="hover:text-gray-900 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                </a>
+                <a href="#" onclick="alert('This feature will be developed in the future.'); return false;" class="hover:text-gray-900 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full mx-4 transform transition-all">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <div class="text-center">
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Admin Logout</h3>
+                <p class="text-sm text-gray-500">Are you sure you want to end your current session?</p>
+            </div>
+            <div class="mt-8 flex justify-center gap-3">
+                <button onclick="closeLogoutModal()" class="px-5 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors w-1/2">
+                    Cancel
+                </button>
+                <form action="/logout" method="POST" class="w-1/2">
+                    @csrf
+                    <button type="submit" class="w-full px-5 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors text-center block">
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for handling Dropdowns and Modals -->
+    <script>
+        // Note: Function to toggle user dropdown menu
+        function toggleDropdown(menuId) {
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if(menu.id !== menuId) menu.classList.add('hidden');
+            });
+            document.getElementById(menuId).classList.toggle('hidden');
+        }
+
+        // Note: Function specific to mobile hamburger navigation
+        function toggleMobileNav(navId) {
+            document.getElementById(navId).classList.toggle('hidden');
+        }
+
+        function openLogoutModal() {
+            document.getElementById('logoutModal').classList.remove('hidden');
+        }
+
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').classList.add('hidden');
+        }
+
+        // Note: Close dropdowns if user clicks outside of them
+        window.addEventListener('click', function(e) {
+            if (!e.target.closest('.user-menu-container') && !e.target.closest('button[onclick*="toggleMobileNav"]')) {
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    menu.classList.add('hidden');
+                });
+            }
+        });
+    </script>
 </body>
 </html>

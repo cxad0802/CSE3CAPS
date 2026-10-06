@@ -3,195 +3,128 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\BorrowRequestWorkflow;
 use App\Services\FirestoreService;
 use App\Support\BorrowRequest;
-use Google\Cloud\Firestore\Transaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use RuntimeException;
-use Throwable;
 
 /**
  * The administrator queue: review requests and record returns.
  *
- * Every decision that moves stock runs inside a Firestore transaction, so two
- * administrators approving at the same moment cannot lend the same unit twice.
+ * Decisions are delegated to BorrowRequestWorkflow, which runs each one in a
+ * Firestore transaction together with the stock movement it implies.
  */
 class BorrowRequestController extends Controller
 {
+    /**
+     * Rows per page. The "Showing x to y" line in the view assumes this value.
+     */
+    private const PER_PAGE = 10;
+
+    /**
+     * Tab name in the UI, mapped onto the stored status it selects.
+     *
+     * @var array<string, string>
+     */
+    private const TABS = [
+        'pending' => 'pending',
+        'active' => 'approved',
+        'returned' => 'returned',
+    ];
+
     public function index(Request $request, FirestoreService $firestore): View
     {
-        $status = (string) $request->query('status', 'all');
+        $filter = (string) $request->query('filter', 'all');
+        $search = trim((string) $request->query('search', ''));
+        $page = max((int) $request->query('page', 1), 1);
 
-        $query = $firestore->borrowRequests();
-
-        if (in_array($status, BorrowRequest::STATUSES, true)) {
-            $query = $query->where('status', '=', $status);
-        } else {
-            $status = 'all';
-        }
-
+        // The whole collection is read once and then filtered, sorted and paged
+        // in PHP. Doing it with where() plus orderBy('createdAt') would need a
+        // composite index that is not deployed to the project yet.
         $requests = array_map(
             BorrowRequest::fromSnapshot(...),
-            $firestore->documentsOf($query),
+            $firestore->documentsOf($firestore->borrowRequests()),
         );
 
         usort($requests, BorrowRequest::newestFirst(...));
 
+        $pendingCount = count(array_filter(
+            $requests,
+            fn (BorrowRequest $borrowRequest) => $borrowRequest->status === 'pending',
+        ));
+
+        $status = self::TABS[$filter] ?? null;
+
+        $matching = array_values(array_filter(
+            $requests,
+            fn (BorrowRequest $borrowRequest) => ($status === null || $borrowRequest->status === $status)
+                && $borrowRequest->matches($search),
+        ));
+
+        $totalResults = count($matching);
+        $totalPages = (int) ceil($totalResults / self::PER_PAGE);
+        $page = $totalPages > 0 ? min($page, $totalPages) : 1;
+
         return view('admin.requests', [
-            'requests' => $requests,
-            'status' => $status,
-            'pendingCount' => $this->countByStatus($firestore, 'pending'),
+            'paginatedRequests' => array_map(
+                fn (BorrowRequest $borrowRequest) => $borrowRequest->forAdminQueue(),
+                array_slice($matching, ($page - 1) * self::PER_PAGE, self::PER_PAGE),
+            ),
+            'pendingCount' => $pendingCount,
+            'page' => $page,
+            'totalPages' => $totalPages,
+            'totalResults' => $totalResults,
         ]);
     }
 
-    public function approve(Request $request, FirestoreService $firestore, string $id): RedirectResponse
+    public function approve(Request $request, BorrowRequestWorkflow $workflow, string $id): RedirectResponse
     {
-        try {
-            $name = $this->decide($firestore, $id, 'approved', -1, $request->session()->get('firebase.uid'));
-        } catch (RuntimeException $e) {
-            return back()->withErrors(['request' => $e->getMessage()]);
-        }
-
-        return back()->with('status', 'Approved the loan of '.$name.'.');
+        return $this->decide($request, $workflow, $id, 'approved', 'Approved the loan of %s.');
     }
 
-    public function reject(Request $request, FirestoreService $firestore, string $id): RedirectResponse
+    public function reject(Request $request, BorrowRequestWorkflow $workflow, string $id): RedirectResponse
     {
         $validated = $request->validate([
             'review_note' => ['nullable', 'string', 'max:500'],
         ]);
 
-        try {
-            $name = $this->decide(
-                $firestore,
-                $id,
-                'rejected',
-                0,
-                $request->session()->get('firebase.uid'),
-                $validated['review_note'] ?? null,
-            );
-        } catch (RuntimeException $e) {
-            return back()->withErrors(['request' => $e->getMessage()]);
-        }
-
-        return back()->with('status', 'Rejected the request for '.$name.'.');
+        return $this->decide(
+            $request,
+            $workflow,
+            $id,
+            'rejected',
+            'Rejected the request for %s.',
+            $validated['review_note'] ?? null,
+        );
     }
 
-    public function markReturned(Request $request, FirestoreService $firestore, string $id): RedirectResponse
+    public function markReturned(Request $request, BorrowRequestWorkflow $workflow, string $id): RedirectResponse
     {
-        try {
-            $name = $this->decide($firestore, $id, 'returned', +1, $request->session()->get('firebase.uid'));
-        } catch (RuntimeException $e) {
-            return back()->withErrors(['request' => $e->getMessage()]);
-        }
-
-        return back()->with('status', 'Recorded the return of '.$name.'.');
+        return $this->decide($request, $workflow, $id, 'returned', 'Recorded the return of %s.');
     }
 
-    /**
-     * Move a request to a new status and adjust the stock of the item by
-     * $stockDelta units, both or neither.
-     *
-     * @param  int  $stockDelta  -1 when approving, +1 when a loan comes back, 0 otherwise
-     *
-     * @throws RuntimeException when the transition is not allowed
-     */
     private function decide(
-        FirestoreService $firestore,
+        Request $request,
+        BorrowRequestWorkflow $workflow,
         string $id,
         string $to,
-        int $stockDelta,
-        string $adminUid,
+        string $message,
         ?string $note = null,
-    ): string {
-        $requestRef = $firestore->borrowRequests()->document($id);
-        $equipments = $firestore->equipments();
-
+    ): RedirectResponse {
         try {
-            return $firestore->client()->runTransaction(
-                function (Transaction $transaction) use ($requestRef, $equipments, $to, $stockDelta, $adminUid, $note, $firestore): string {
-                    $snapshot = $transaction->snapshot($requestRef);
-
-                    if (! $snapshot->exists()) {
-                        throw new RuntimeException('That request no longer exists.');
-                    }
-
-                    $borrowRequest = BorrowRequest::fromSnapshot($snapshot);
-                    $this->assertTransitionAllowed($borrowRequest->status, $to);
-
-                    if ($stockDelta !== 0) {
-                        $equipmentRef = $equipments->document($borrowRequest->equipmentId);
-                        $equipment = $transaction->snapshot($equipmentRef);
-
-                        if (! $equipment->exists()) {
-                            throw new RuntimeException('The item for this request is no longer in the catalogue.');
-                        }
-
-                        $available = (int) ($equipment->data()['availableQuantity'] ?? 0);
-                        $total = (int) ($equipment->data()['totalQuantity'] ?? 0);
-                        $updated = $available + ($stockDelta * $borrowRequest->quantity);
-
-                        if ($updated < 0) {
-                            throw new RuntimeException('There are no units of '.$borrowRequest->equipmentName.' left to lend.');
-                        }
-
-                        $transaction->set($equipmentRef, [
-                            // Clamped so a double return cannot push stock above what is owned.
-                            'availableQuantity' => min($updated, $total),
-                            'updatedAt' => $firestore->now(),
-                        ], ['merge' => true]);
-                    }
-
-                    $payload = [
-                        'status' => $to,
-                        'reviewedBy' => $adminUid,
-                        'reviewedAt' => $firestore->now(),
-                        'updatedAt' => $firestore->now(),
-                    ];
-
-                    if ($note !== null) {
-                        $payload['reviewNote'] = $note;
-                    }
-
-                    if ($to === 'returned') {
-                        $payload['returnedAt'] = $firestore->now();
-                    }
-
-                    $transaction->set($requestRef, $payload, ['merge' => true]);
-
-                    return $borrowRequest->equipmentName;
-                }
+            $name = $workflow->transition(
+                $id,
+                $to,
+                (string) $request->session()->get('firebase.uid'),
+                $note,
             );
         } catch (RuntimeException $e) {
-            throw $e;
-        } catch (Throwable $e) {
-            throw new RuntimeException('Could not update the request: '.$e->getMessage(), 0, $e);
+            return back()->withErrors(['request' => $e->getMessage()]);
         }
-    }
 
-    /**
-     * @throws RuntimeException
-     */
-    private function assertTransitionAllowed(string $from, string $to): void
-    {
-        // Mirrors the state diagram in docs/firestore-schema.md.
-        $allowed = match ($from) {
-            'pending' => ['approved', 'rejected', 'cancelled'],
-            'approved' => ['returned'],
-            default => [],
-        };
-
-        if (! in_array($to, $allowed, true)) {
-            throw new RuntimeException('A request that is already '.$from.' cannot be marked '.$to.'.');
-        }
-    }
-
-    private function countByStatus(FirestoreService $firestore, string $status): int
-    {
-        return count($firestore->documentsOf(
-            $firestore->borrowRequests()->where('status', '=', $status)
-        ));
+        return back()->with('success', sprintf($message, $name));
     }
 }
