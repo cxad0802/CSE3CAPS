@@ -222,7 +222,8 @@ php artisan key:generate
    JSON key.
 2. Save it as `storage/app/firebase/service-account.json` (this path is git-ignored).
 3. Fill in the `FIREBASE_*` variables in `.env`.
-4. Create the collections and verify the connection:
+4. If something fails, check [docs/known-issues.md](docs/known-issues.md) before changing auth or Firestore queries.
+5. Create the collections and verify the connection:
 
 ```bash
 php artisan firestore:init           # create users, equipments, borrowRequests
@@ -254,7 +255,8 @@ CSE3CAPS/
 │   ├── Providers/            # FirebaseServiceProvider
 │   └── Services/             # FirestoreService and other integrations
 ├── config/firebase.php       # Firebase / Firestore configuration
-├── docs/                     # Setup guides, schema, diagrams, sprint reports
+├── docs/                     # Setup guides, schema, known issues, sprint reports
+│   └── known-issues.md       # Bugs we hit and how they were fixed (handover)
 ├── resources/views/          # Blade templates
 ├── routes/web.php            # Web routes
 └── storage/app/firebase/     # Service account key (ignored by git)
