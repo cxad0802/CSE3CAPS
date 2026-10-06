@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Kreait\Firebase\Contract\Auth as FirebaseAuth;
 use Kreait\Firebase\Factory;
 use RuntimeException;
+use Symfony\Component\Cache\Adapter\Psr16Adapter;
 
 class FirebaseServiceProvider extends ServiceProvider
 {
@@ -26,7 +27,11 @@ class FirebaseServiceProvider extends ServiceProvider
 
             // Google's public signing keys rotate; caching them keeps token
             // verification from making an outbound request per HTTP request.
-            $cache = $app->make(CacheFactory::class)->store($config['auth']['cache_store']);
+            // Laravel's cache repository is PSR-16 while the SDK expects a
+            // PSR-6 pool, so it is wrapped rather than passed straight through.
+            $cache = new Psr16Adapter(
+                $app->make(CacheFactory::class)->store($config['auth']['cache_store'])
+            );
 
             return $factory
                 ->withVerifierCache($cache)

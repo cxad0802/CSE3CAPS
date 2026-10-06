@@ -181,4 +181,4 @@ Firestore returns.
 
 All access goes through Laravel with the service account, which bypasses security rules, so the
 client-facing rules deny everything by default. See
-[firebase-setup.md](firebase-setup.md#5-security-rules).
+[firebase-setup.md](firebase-setup.md#6-security-rules).

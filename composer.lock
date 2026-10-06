@@ -5,6 +5,7 @@
         "This file is @generated automatically"
     ],
     "content-hash": "deaa7500ddc310fc5ee47213fea7f6f7",
+    "content-hash": "787a7d27838e62bf62a5279ab7f1ba76",
     "packages": [
         {
             "name": "beste/clock",
@@ -4767,6 +4768,16 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/cache/zipball/e037fd41e9f8ec9ac270e2a4c76a1992d18d808c",
                 "reference": "e037fd41e9f8ec9ac270e2a4c76a1992d18d808c",
+            "version": "v7.4.17",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/cache.git",
+                "reference": "f6028442dd1dfa4f88e9c7360d753948d165e938"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/cache/zipball/f6028442dd1dfa4f88e9c7360d753948d165e938",
+                "reference": "f6028442dd1dfa4f88e9c7360d753948d165e938",
                 "shasum": ""
             },
             "require": {
@@ -4837,6 +4848,7 @@
             ],
             "support": {
                 "source": "https://github.com/symfony/cache/tree/v7.4.19"
+                "source": "https://github.com/symfony/cache/tree/v7.4.17"
             },
             "funding": [
                 {
@@ -4857,6 +4869,7 @@
                 }
             ],
             "time": "2026-09-08T13:28:43+00:00"
+            "time": "2026-08-19T08:28:05+00:00"
         },
         {
             "name": "symfony/cache-contracts",
@@ -7459,6 +7472,16 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/symfony/var-exporter/zipball/d6a87acbe48cbc707b9aba7f1a6c2215aab02603",
                 "reference": "d6a87acbe48cbc707b9aba7f1a6c2215aab02603",
+            "version": "v7.4.16",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/var-exporter.git",
+                "reference": "ca31404415670aa3834809005b529df1b84f0790"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/var-exporter/zipball/ca31404415670aa3834809005b529df1b84f0790",
+                "reference": "ca31404415670aa3834809005b529df1b84f0790",
                 "shasum": ""
             },
             "require": {
@@ -7507,6 +7530,7 @@
             ],
             "support": {
                 "source": "https://github.com/symfony/var-exporter/tree/v7.4.18"
+                "source": "https://github.com/symfony/var-exporter/tree/v7.4.16"
             },
             "funding": [
                 {
@@ -7527,6 +7551,7 @@
                 }
             ],
             "time": "2026-08-23T10:03:40+00:00"
+            "time": "2026-07-30T12:37:26+00:00"
         },
         {
             "name": "tijsverkoyen/css-to-inline-styles",
